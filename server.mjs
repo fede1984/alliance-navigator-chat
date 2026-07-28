@@ -10,6 +10,9 @@ const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
 const groqApiUrl = "https://api.groq.com/openai/v1/chat/completions";
 const rootDirectory = fileURLToPath(new URL(".", import.meta.url));
 const conversations = new Map();
+const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000);
+const rateLimitMaxRequests = Number(process.env.RATE_LIMIT_MAX_REQUESTS || 10);
+const rateLimitBuckets = new Map();
 
 const systemPrompt =
   process.env.SYSTEM_PROMPT ||
@@ -28,6 +31,58 @@ const mimeTypes = {
 function sendJson(response, status, value) {
   response.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   response.end(JSON.stringify(value));
+}
+
+function applySecurityHeaders(response) {
+  response.setHeader("Content-Security-Policy", "default-src 'self'; connect-src 'self'");
+  response.setHeader("Referrer-Policy", "no-referrer");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("X-Frame-Options", "DENY");
+}
+
+function getClientId(request) {
+  if (process.env.TRUST_PROXY === "true") {
+    const forwardedFor = request.headers["x-forwarded-for"];
+    if (typeof forwardedFor === "string") {
+      return forwardedFor.split(",")[0].trim();
+    }
+  }
+
+  return request.socket.remoteAddress || "unknown";
+}
+
+function consumeRateLimit(request, response) {
+  const now = Date.now();
+  const clientId = getClientId(request);
+  const current = rateLimitBuckets.get(clientId);
+  const bucket =
+    current && current.resetAt > now
+      ? current
+      : { count: 0, resetAt: now + rateLimitWindowMs };
+
+  bucket.count += 1;
+  rateLimitBuckets.set(clientId, bucket);
+
+  response.setHeader("RateLimit-Limit", String(rateLimitMaxRequests));
+  response.setHeader(
+    "RateLimit-Remaining",
+    String(Math.max(0, rateLimitMaxRequests - bucket.count))
+  );
+  response.setHeader("RateLimit-Reset", String(Math.ceil(bucket.resetAt / 1000)));
+
+  if (bucket.count > rateLimitMaxRequests) {
+    response.setHeader("Retry-After", String(Math.ceil((bucket.resetAt - now) / 1000)));
+    sendJson(response, 429, { error: "Too many requests. Please try again later." });
+    return false;
+  }
+
+  if (rateLimitBuckets.size > 1_000) {
+    for (const [key, value] of rateLimitBuckets) {
+      if (value.resetAt <= now) rateLimitBuckets.delete(key);
+    }
+  }
+
+  return true;
 }
 
 async function readJson(request) {
@@ -304,7 +359,15 @@ async function serveStatic(request, response) {
 }
 
 const server = createServer(async (request, response) => {
+  applySecurityHeaders(response);
+
+  if (request.method === "GET" && request.url === "/health") {
+    sendJson(response, 200, { status: "ok" });
+    return;
+  }
+
   if (request.method === "POST" && request.url === "/api/chat") {
+    if (!consumeRateLimit(request, response)) return;
     await handleChat(request, response);
     return;
   }

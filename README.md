@@ -46,6 +46,21 @@ Groq `4xx` errors are returned to the client without fallback.
 
 Never commit `.env`; it is excluded by `.gitignore`.
 
+### Secret management
+
+Provider credentials are server-side secrets. They must never use the `VITE_`
+prefix, be committed to Git, be logged, or be returned to the browser.
+
+- Local development reads credentials from the ignored `.env` file.
+- Deployed environments must inject credentials through the hosting provider's
+  secret or environment-variable manager.
+- Contributors use their own provider credentials.
+- Development and production credentials should be separate, scoped as narrowly
+  as possible, rate limited at the provider, and rotated if exposure is suspected.
+
+The application cannot safely bundle a shared provider key for people who clone
+the repository. A public demo must keep the key on its backend.
+
 ## Development
 
 ```bash
@@ -61,6 +76,11 @@ The development command starts two processes:
 | `npm run dev:web` | `http://localhost:5173` | Vite frontend |
 
 Vite proxies `/api/*` to the Node backend during development.
+
+The chat endpoint applies an in-memory per-client rate limit. Its defaults can be
+adjusted with `RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX_REQUESTS`. Set
+`TRUST_PROXY=true` only when the application runs behind a trusted reverse proxy
+that sanitizes `X-Forwarded-For`.
 
 ## Production
 
@@ -120,6 +140,10 @@ context.
 Cancellation propagates from the browser's `AbortController` through the Node
 server to the active provider request. Partial response text remains visible and
 the message is marked as cancelled.
+
+`GET /health` provides a credential-free health check for deployment platforms.
+The server also sets a restrictive Content Security Policy and baseline browser
+security headers.
 
 ## Current capabilities
 
