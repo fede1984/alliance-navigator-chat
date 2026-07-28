@@ -11,7 +11,10 @@ export const StreamingContent = memo(function StreamingContent({
 }: StreamingContentProps) {
   return (
     <div className="streaming-content" aria-live="off">
-      <p>{content || "Thinking…"}</p>
+      <p>
+        {content ||
+          (isStreaming ? "Thinking…" : "No response was received.")}
+      </p>
 
       {isStreaming && (
         <span className="streaming-indicator" aria-hidden="true">

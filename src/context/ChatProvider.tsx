@@ -26,6 +26,16 @@ type ActiveRequest = {
 };
 
 const STORAGE_KEY = "alliance-navigator-chat-state";
+const FIRST_RESPONSE_TIMEOUT_MS = 20_000;
+
+function restoreMessage(message: ChatMessage): ChatMessage {
+  if (message.status !== "streaming") return message;
+
+  return {
+    ...message,
+    status: "cancelled",
+  };
+}
 
 function getInitialState(): ChatState {
   try {
@@ -33,13 +43,21 @@ function getInitialState(): ChatState {
     if (!savedState) return initialState;
 
     const parsed = JSON.parse(savedState) as Partial<ChatState>;
+    const messages = Array.isArray(parsed.messages)
+      ? parsed.messages.map(restoreMessage)
+      : [];
+    const conversations = Array.isArray(parsed.conversations)
+      ? parsed.conversations.map((conversation) => ({
+          ...conversation,
+          messages: conversation.messages.map(restoreMessage),
+        }))
+      : [];
+
     return {
       ...initialState,
       conversationId: parsed.conversationId ?? null,
-      messages: Array.isArray(parsed.messages) ? parsed.messages : [],
-      conversations: Array.isArray(parsed.conversations)
-        ? parsed.conversations
-        : [],
+      messages,
+      conversations,
     };
   } catch {
     return initialState;
@@ -88,16 +106,28 @@ export function ChatProvider({ children }: ChatProviderProps) {
     ) => {
       const controller = new AbortController();
       activeRequestRef.current = { controller, messageId };
+      let receivedEvent = false;
+      let firstResponseTimedOut = false;
+      const firstResponseTimeout = window.setTimeout(() => {
+        firstResponseTimedOut = true;
+        controller.abort();
+      }, FIRST_RESPONSE_TIMEOUT_MS);
 
       try {
         for await (const event of streamChatResponse(
           { prompt, conversationId },
           controller.signal
         )) {
+          receivedEvent = true;
+          window.clearTimeout(firstResponseTimeout);
           dispatch({
             type: "stream_event_received",
             payload: { messageId, event },
           });
+        }
+
+        if (!receivedEvent) {
+          throw new Error("The AI provider returned an empty response.");
         }
 
         dispatch({
@@ -108,7 +138,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
           },
         });
       } catch (error) {
-        if (
+        if (firstResponseTimedOut) {
+          dispatch({
+            type: "assistant_failed",
+            payload: {
+              messageId,
+              error:
+                "The AI provider took too long to start responding. Please retry.",
+            },
+          });
+        } else if (
           error instanceof DOMException &&
           error.name === "AbortError"
         ) {
@@ -123,6 +162,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
           });
         }
       } finally {
+        window.clearTimeout(firstResponseTimeout);
         if (activeRequestRef.current?.messageId === messageId) {
           activeRequestRef.current = null;
         }
