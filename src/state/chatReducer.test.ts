@@ -171,4 +171,23 @@ describe("chatReducer", () => {
       "Microsoft pipeline review"
     );
   });
+
+  it("deletes an active conversation and clears its transcript", () => {
+    const started = chatReducer(initialState, {
+      type: "request_started",
+      payload: {
+        userMessage: message("user", "user-1"),
+        assistantMessage: message("assistant", "assistant-1"),
+        conversationId: "conversation-1",
+      },
+    });
+    const deleted = chatReducer(started, {
+      type: "conversation_deleted",
+      payload: { conversationId: "conversation-1" },
+    });
+
+    expect(deleted.conversations).toEqual([]);
+    expect(deleted.conversationId).toBeNull();
+    expect(deleted.messages).toEqual([]);
+  });
 });

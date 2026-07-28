@@ -212,6 +212,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
     []
   );
 
+  const deleteConversation = useCallback((conversationId: string) => {
+    if (stateRef.current.conversationId === conversationId) {
+      activeRequestRef.current?.controller.abort();
+    }
+    dispatch({
+      type: "conversation_deleted",
+      payload: { conversationId },
+    });
+  }, []);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
@@ -231,6 +241,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       startNewConversation,
       loadConversation,
       renameConversation,
+      deleteConversation,
     }),
     [
       cancelResponse,
@@ -239,6 +250,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       startNewConversation,
       loadConversation,
       renameConversation,
+      deleteConversation,
     ]
   );
 

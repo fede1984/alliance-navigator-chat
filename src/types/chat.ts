@@ -131,4 +131,8 @@ export type ChatAction =
   | {
       type: "conversation_renamed";
       payload: { conversationId: string; title: string };
+    }
+  | {
+      type: "conversation_deleted";
+      payload: { conversationId: string };
     };

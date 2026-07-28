@@ -220,6 +220,18 @@ export function chatReducer(
       };
     }
 
+    case "conversation_deleted": {
+      const conversations = state.conversations.filter(
+        ({ id }) => id !== action.payload.conversationId
+      );
+
+      if (state.conversationId === action.payload.conversationId) {
+        return { ...initialState, conversations };
+      }
+
+      return { ...state, conversations };
+    }
+
     default:
       return state;
   }

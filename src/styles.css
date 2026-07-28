@@ -106,17 +106,31 @@ button:disabled {
   text-align: left;
 }
 
-.history-rename-button {
-  padding: 6px;
-  border: 0;
-  background: transparent;
-  color: #53617d;
-  font-size: 0.76rem;
-  font-weight: 700;
+.history-actions {
+  display: flex;
+  align-items: center;
 }
 
-.history-rename-button:hover {
+.history-icon-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #53617d;
+}
+
+.history-icon-button:hover {
+  background: #e5ebf5;
   color: #1d4ed8;
+}
+
+.history-delete-button:hover {
+  background: #fff1f0;
+  color: #b42318;
 }
 
 .history-rename-form {
@@ -450,6 +464,9 @@ button:disabled {
 }
 
 .composer button {
+  display: grid;
+  place-items: center;
+  min-width: 46px;
   padding: 12px 18px;
   border: 0;
   border-radius: 10px;

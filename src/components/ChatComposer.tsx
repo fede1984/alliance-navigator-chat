@@ -5,6 +5,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
+import { Send, Square } from "iconoir-react";
 import {
   useChatActions,
   useChatPhase,
@@ -61,12 +62,19 @@ export const ChatComposer = memo(function ChatComposer() {
             className="cancel-button"
             type="button"
             onClick={cancelResponse}
+            aria-label="Stop response"
+            title="Stop response"
           >
-            Stop response
+            <Square aria-hidden="true" width={20} height={20} />
           </button>
         ) : (
-          <button type="submit" disabled={!value.trim()}>
-            Send
+          <button
+            type="submit"
+            disabled={!value.trim()}
+            aria-label="Send message"
+            title="Send message"
+          >
+            <Send aria-hidden="true" width={20} height={20} />
           </button>
         )}
       </div>

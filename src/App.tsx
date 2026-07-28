@@ -5,6 +5,7 @@ import {
   useTransition,
   type FormEvent,
 } from "react";
+import { EditPencil, Trash } from "iconoir-react";
 import { AssistantMessage } from "./components/AssistantMessage";
 import { ChatComposer } from "./components/ChatComposer";
 import { UserMessage } from "./components/UserMessage";
@@ -53,7 +54,11 @@ function ConversationHeader() {
 
 function ConversationHistory() {
   const { conversationId, conversations } = useChatState();
-  const { loadConversation, renameConversation } = useChatActions();
+  const {
+    deleteConversation,
+    loadConversation,
+    renameConversation,
+  } = useChatActions();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState("");
 
@@ -67,6 +72,12 @@ function ConversationHistory() {
     if (!editingId || !draftTitle.trim()) return;
     renameConversation(editingId, draftTitle);
     setEditingId(null);
+  }
+
+  function handleDelete(id: string, title: string) {
+    if (window.confirm(`Delete "${title}" from chat history?`)) {
+      deleteConversation(id);
+    }
   }
 
   return (
@@ -120,16 +131,30 @@ function ConversationHistory() {
                     }).format(new Date(conversation.updatedAt))}
                   </time>
                 </button>
-                <button
-                  className="history-rename-button"
-                  type="button"
-                  aria-label={`Rename ${conversation.title}`}
-                  onClick={() =>
-                    startRenaming(conversation.id, conversation.title)
-                  }
-                >
-                  Rename
-                </button>
+                <div className="history-actions">
+                  <button
+                    className="history-icon-button"
+                    type="button"
+                    aria-label={`Rename ${conversation.title}`}
+                    title="Rename chat"
+                    onClick={() =>
+                      startRenaming(conversation.id, conversation.title)
+                    }
+                  >
+                    <EditPencil aria-hidden="true" width={18} height={18} />
+                  </button>
+                  <button
+                    className="history-icon-button history-delete-button"
+                    type="button"
+                    aria-label={`Delete ${conversation.title}`}
+                    title="Delete chat"
+                    onClick={() =>
+                      handleDelete(conversation.id, conversation.title)
+                    }
+                  >
+                    <Trash aria-hidden="true" width={18} height={18} />
+                  </button>
+                </div>
               </div>
             )
           )}
