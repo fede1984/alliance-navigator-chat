@@ -22,3 +22,5 @@ services:
         value: "10"
       - key: STREAM_DELAY_MS
         value: "120"
+      - key: STREAM_DELAY_MAX_EVENTS
+        value: "80"

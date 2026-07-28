@@ -17,6 +17,10 @@ const streamDelayMs = Math.min(
   1_000,
   Math.max(0, Number(process.env.STREAM_DELAY_MS || 0))
 );
+const streamDelayMaxEvents = Math.max(
+  0,
+  Number(process.env.STREAM_DELAY_MAX_EVENTS || 80)
+);
 const rateLimitBuckets = new Map();
 
 const systemPrompt =
@@ -419,6 +423,7 @@ async function handleChat(request, response) {
   const reader = upstream.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   let assistantContent = "";
+  let pacedDeltaCount = 0;
 
   try {
     while (true) {
@@ -438,7 +443,10 @@ async function handleChat(request, response) {
         if (typeof delta === "string" && delta) {
           assistantContent += delta;
           writeEvent(response, { type: "text_delta", delta });
-          await waitForStreamPacing(upstreamController.signal);
+          if (pacedDeltaCount < streamDelayMaxEvents) {
+            pacedDeltaCount += 1;
+            await waitForStreamPacing(upstreamController.signal);
+          }
         }
       }
 

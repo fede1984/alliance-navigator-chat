@@ -87,7 +87,8 @@ that sanitizes `X-Forwarded-For`.
 
 For presentations, `STREAM_DELAY_MS` can add a small server-side delay between
 streamed deltas so cancellation remains easy to demonstrate. It defaults to `0`
-locally; the Render demo uses `120` milliseconds.
+locally; the Render demo uses `120` milliseconds for at most the first
+`STREAM_DELAY_MAX_EVENTS` deltas so long answers are not artificially delayed.
 
 ## Production
 
