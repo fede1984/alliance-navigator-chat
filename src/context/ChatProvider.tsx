@@ -81,6 +81,13 @@ function createMessage(
 }
 
 function getErrorMessage(error: unknown) {
+  if (
+    error instanceof TypeError &&
+    error.message.toLowerCase().includes("fetch")
+  ) {
+    return "We couldn’t connect to the chat service. Check your connection and try again.";
+  }
+
   return error instanceof Error
     ? error.message
     : "The assistant could not complete the response.";
