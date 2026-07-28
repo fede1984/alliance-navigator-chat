@@ -36,7 +36,7 @@ function ConversationHeader() {
       <div className="header-actions">
         <span className="conversation-badge">
           {conversationId
-            ? `Conversation ${conversationId.slice(0, 8)}`
+            ? `Conversation ID ${conversationId.slice(0, 8)}`
             : "New conversation"}
         </span>
         <button
@@ -45,7 +45,7 @@ function ConversationHeader() {
           onClick={handleNewConversation}
           disabled={!conversationId || isPending}
         >
-          {isPending ? "Starting…" : "New chat"}
+          {isPending ? "Starting…" : "+ New chat"}
         </button>
       </div>
     </header>
