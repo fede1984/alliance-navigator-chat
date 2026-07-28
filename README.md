@@ -93,6 +93,13 @@ The build command generates `dist`. The Node server then handles
 `POST /api/chat`, serves the frontend assets, and falls back to
 `dist/index.html` for client-side routes.
 
+### Deploy to Render
+
+The repository includes a `render.yaml` Blueprint. Create a new Render Blueprint,
+connect this repository, and provide at least one of `GROQ_API_KEY` or
+`GEMINI_API_KEY` when Render prompts for secret environment values. Render builds
+and starts the full-stack application and checks `GET /health`.
+
 ## Quality checks
 
 ```bash
