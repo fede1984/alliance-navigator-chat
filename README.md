@@ -3,6 +3,8 @@
 A full-stack reference project for an enterprise conversational interface built
 with React 19, TypeScript, Vite, and Node.js.
 
+[Open the live demo](https://alliance-navigator-chat.onrender.com)
+
 The application includes real-time response streaming, cancellation, provider
 fallback, and conversation history. Its domain contracts and UI components also
 support citations and structured result cards, although the current backend
