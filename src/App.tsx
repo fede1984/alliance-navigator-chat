@@ -176,9 +176,8 @@ function ChatTranscript() {
         <div className="empty-state">
           <h2>Explore strategic alliances</h2>
           <p>
-            Ask a question or launch a simulated enterprise data scenario.
+            Ask about alliance performance, key contacts or win stories.
           </p>
-          <DemoPrompts />
         </div>
       )}
 
@@ -196,35 +195,6 @@ function ChatTranscript() {
         </p>
       )}
     </section>
-  );
-}
-
-function DemoPrompts() {
-  const phase = useChatPhase();
-  const { sendMessage } = useChatActions();
-  const disabled = phase === "streaming";
-
-  return (
-    <div className="demo-prompts" aria-label="Demo prompts">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() =>
-          void sendMessage("Show the Power BI alliance performance demo")
-        }
-      >
-        Power BI performance demo
-      </button>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() =>
-          void sendMessage("Find the SharePoint alliance brief demo")
-        }
-      >
-        SharePoint brief demo
-      </button>
-    </div>
   );
 }
 
