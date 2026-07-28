@@ -1,14 +1,15 @@
-# Alliance Navigator Chat
+# EY Alliance Intelligence — Concept Demo
 
-A full-stack reference project for an enterprise conversational interface built
-with React 19, TypeScript, Vite, and Node.js.
+A portfolio concept for an EY-oriented strategic alliance intelligence
+experience, built with React 19, TypeScript, Vite, and Node.js. This is not an
+official EY product.
 
 [Open the live demo](https://alliance-navigator-chat.onrender.com)
 
 The application includes real-time response streaming, cancellation, provider
-fallback, and conversation history. Its domain contracts and UI components also
-support citations and structured result cards, although the current backend
-only emits text events.
+fallback, and conversation history. Two deterministic demo prompts show
+simulated Power BI and SharePoint results; all other prompts use the configured
+AI provider.
 
 ## Requirements
 

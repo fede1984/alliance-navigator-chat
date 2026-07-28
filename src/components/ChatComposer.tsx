@@ -51,7 +51,7 @@ export const ChatComposer = memo(function ChatComposer() {
           id="chat-input"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="What is Microsoft’s pipeline?"
+          placeholder="Ask about alliance performance, contacts or win stories"
           disabled={isStreaming}
           aria-describedby="composer-help"
         />
@@ -72,7 +72,7 @@ export const ChatComposer = memo(function ChatComposer() {
       </div>
 
       <small id="composer-help">
-        Answers include links and “as-of” dates for verification.
+        Demo scenarios are labeled; standard prompts use the AI provider.
       </small>
     </form>
   );

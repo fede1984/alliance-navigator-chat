@@ -28,8 +28,8 @@ function ConversationHeader() {
   return (
     <header className="app-header">
       <div>
-        <p className="eyebrow">Enterprise conversational UI</p>
-        <h1>Alliance Navigator</h1>
+        <p className="eyebrow">EY alliance intelligence concept</p>
+        <h1>EY Alliance Intelligence</h1>
       </div>
 
       <div className="header-actions">
@@ -174,11 +174,11 @@ function ChatTranscript() {
     >
       {messages.length === 0 && (
         <div className="empty-state">
-          <h2>Ask about an alliance</h2>
+          <h2>Explore strategic alliances</h2>
           <p>
-            Try asking about Microsoft’s pipeline, key contacts or
-            win stories.
+            Ask a question or launch a simulated enterprise data scenario.
           </p>
+          <DemoPrompts />
         </div>
       )}
 
@@ -199,6 +199,35 @@ function ChatTranscript() {
   );
 }
 
+function DemoPrompts() {
+  const phase = useChatPhase();
+  const { sendMessage } = useChatActions();
+  const disabled = phase === "streaming";
+
+  return (
+    <div className="demo-prompts" aria-label="Demo prompts">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() =>
+          void sendMessage("Show the Power BI alliance performance demo")
+        }
+      >
+        Power BI performance demo
+      </button>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() =>
+          void sendMessage("Find the SharePoint alliance brief demo")
+        }
+      >
+        SharePoint brief demo
+      </button>
+    </div>
+  );
+}
+
 function ChatExperience() {
   return (
     <div className="app-layout">
@@ -208,6 +237,9 @@ function ChatExperience() {
         <ChatStatusAnnouncer />
         <ChatTranscript />
         <ChatComposer />
+        <p className="concept-note">
+          Concept demo for portfolio purposes. Not an official EY product.
+        </p>
       </main>
     </div>
   );

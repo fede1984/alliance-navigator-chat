@@ -56,7 +56,7 @@ button:disabled {
 
 .app-shell {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   min-width: 0;
   gap: 20px;
   overflow: hidden;
@@ -240,6 +240,35 @@ button:disabled {
 .empty-state h2 {
   margin-bottom: 8px;
   color: #263149;
+}
+
+.demo-prompts {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.demo-prompts button {
+  padding: 10px 14px;
+  border: 1px solid #9da9bf;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #263149;
+  font-weight: 750;
+}
+
+.demo-prompts button:hover:not(:disabled) {
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+}
+
+.concept-note {
+  margin: -10px 4px 0;
+  color: #68748c;
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .message {

@@ -116,6 +116,15 @@ function writeEvent(response, event) {
   response.write(`${JSON.stringify(event)}\n`);
 }
 
+function startStream(response) {
+  response.writeHead(200, {
+    "Content-Type": "application/x-ndjson; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Content-Type-Options": "nosniff",
+  });
+}
+
 function waitForStreamPacing(signal) {
   if (!streamDelayMs) return Promise.resolve();
 
@@ -131,6 +140,91 @@ function waitForStreamPacing(signal) {
 
     signal.addEventListener("abort", handleAbort, { once: true });
   });
+}
+
+function getDemoScenario(prompt) {
+  const normalized = prompt.toLowerCase();
+  if (normalized.includes("power bi alliance performance demo")) {
+    return "power-bi";
+  }
+  if (normalized.includes("sharepoint alliance brief demo")) {
+    return "sharepoint";
+  }
+  return null;
+}
+
+async function handleDemoScenario(
+  scenario,
+  prompt,
+  conversationId,
+  history,
+  request,
+  response
+) {
+  const controller = new AbortController();
+  request.on("aborted", () => controller.abort());
+  response.on("close", () => {
+    if (!response.writableEnded) controller.abort();
+  });
+
+  startStream(response);
+
+  const deltas =
+    scenario === "power-bi"
+      ? [
+          "Here is the simulated alliance performance snapshot from Power BI. ",
+          "The values are demo data and do not represent EY records.",
+        ]
+      : [
+          "I found a simulated alliance strategy brief in SharePoint. ",
+          "This citation demonstrates provenance without exposing a real document.",
+        ];
+  let assistantContent = "";
+
+  try {
+    for (const delta of deltas) {
+      assistantContent += delta;
+      writeEvent(response, { type: "text_delta", delta });
+      await waitForStreamPacing(controller.signal);
+    }
+
+    if (scenario === "power-bi") {
+      writeEvent(response, {
+        type: "result_card",
+        card: {
+          kind: "alliance-profile",
+          id: "demo-power-bi-alliance-performance",
+          name: "Strategic Alliances — Demo data",
+          revenue: 8_100_000,
+          pipeline: 12_400_000,
+        },
+      });
+    } else {
+      writeEvent(response, {
+        type: "citation",
+        citation: {
+          id: "demo-sharepoint-alliance-brief",
+          sourceType: "sharepoint",
+          sourceName: "FY26 Alliance Strategy Brief — SharePoint demo",
+          url: null,
+          asOf: "2026-07-28",
+          status: "unavailable",
+        },
+      });
+    }
+
+    rememberConversation(conversationId, [
+      ...history,
+      { role: "user", content: prompt },
+      { role: "assistant", content: assistantContent },
+    ]);
+  } catch (error) {
+    if (!controller.signal.aborted) {
+      console.error("Demo streaming error:", error);
+    }
+  } finally {
+    response.end();
+  }
 }
 
 async function requestGroq(messages, signal) {
@@ -232,14 +326,6 @@ function getDelta(provider, chunk) {
 }
 
 async function handleChat(request, response) {
-  if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
-    sendJson(response, 503, {
-      error:
-        "An API key is required. Add GROQ_API_KEY or GEMINI_API_KEY to the .env file.",
-    });
-    return;
-  }
-
   let body;
   try {
     body = await readJson(request);
@@ -261,6 +347,27 @@ async function handleChat(request, response) {
   }
 
   const history = conversations.get(conversationId) || [];
+  const demoScenario = getDemoScenario(prompt);
+  if (demoScenario) {
+    await handleDemoScenario(
+      demoScenario,
+      prompt,
+      conversationId,
+      history,
+      request,
+      response
+    );
+    return;
+  }
+
+  if (!process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+    sendJson(response, 503, {
+      error:
+        "An API key is required. Add GROQ_API_KEY or GEMINI_API_KEY to the .env file.",
+    });
+    return;
+  }
+
   const messages = [
     { role: "system", content: systemPrompt },
     ...history,
@@ -307,12 +414,7 @@ async function handleChat(request, response) {
     return;
   }
 
-  response.writeHead(200, {
-    "Content-Type": "application/x-ndjson; charset=utf-8",
-    "Cache-Control": "no-cache, no-transform",
-    Connection: "keep-alive",
-    "X-Content-Type-Options": "nosniff",
-  });
+  startStream(response);
 
   const reader = upstream.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
@@ -404,5 +506,5 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Alliance Navigator server listening on http://${host}:${port}`);
+  console.log(`EY Alliance Intelligence server listening on http://${host}:${port}`);
 });

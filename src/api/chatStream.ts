@@ -1,12 +1,60 @@
 import type { ChatRequest, ChatStreamEvent } from "../types/chat";
 
-function isChatStreamEvent(value: unknown): value is ChatStreamEvent {
+export function isChatStreamEvent(value: unknown): value is ChatStreamEvent {
   if (!value || typeof value !== "object" || !("type" in value)) {
     return false;
   }
 
   const event = value as Record<string, unknown>;
-  return event.type === "text_delta" && typeof event.delta === "string";
+  if (event.type === "text_delta") {
+    return typeof event.delta === "string";
+  }
+
+  if (event.type === "citation") {
+    const citation = event.citation as Record<string, unknown> | undefined;
+    return (
+      !!citation &&
+      typeof citation.id === "string" &&
+      ["power-bi", "sharepoint", "crm"].includes(
+        String(citation.sourceType)
+      ) &&
+      typeof citation.sourceName === "string" &&
+      (typeof citation.url === "string" || citation.url === null) &&
+      typeof citation.asOf === "string" &&
+      ["available", "unavailable", "hidden"].includes(
+        String(citation.status)
+      )
+    );
+  }
+
+  if (event.type === "result_card") {
+    const card = event.card as Record<string, unknown> | undefined;
+    if (!card || typeof card.id !== "string") return false;
+
+    if (card.kind === "alliance-profile") {
+      return (
+        typeof card.name === "string" &&
+        (typeof card.revenue === "number" || card.revenue === null) &&
+        (typeof card.pipeline === "number" || card.pipeline === null)
+      );
+    }
+    if (card.kind === "key-contact") {
+      return (
+        typeof card.name === "string" &&
+        (typeof card.role === "string" || card.role === null) &&
+        typeof card.organization === "string"
+      );
+    }
+    if (card.kind === "win-story") {
+      return (
+        typeof card.title === "string" &&
+        (typeof card.summary === "string" || card.summary === null)
+      );
+    }
+    return false;
+  }
+
+  return false;
 }
 
 function getErrorMessage(payload: unknown, status: number) {
