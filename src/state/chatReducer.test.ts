@@ -142,4 +142,33 @@ describe("chatReducer", () => {
     expect(restored.conversationId).toBe("conversation-1");
     expect(restored.messages).toHaveLength(2);
   });
+
+  it("renames a conversation and preserves the custom title", () => {
+    const started = chatReducer(initialState, {
+      type: "request_started",
+      payload: {
+        userMessage: message("user", "user-1"),
+        assistantMessage: message("assistant", "assistant-1"),
+        conversationId: "conversation-1",
+      },
+    });
+    const renamed = chatReducer(started, {
+      type: "conversation_renamed",
+      payload: {
+        conversationId: "conversation-1",
+        title: "Microsoft pipeline review",
+      },
+    });
+    const updated = chatReducer(renamed, {
+      type: "stream_event_received",
+      payload: {
+        messageId: "assistant-1",
+        event: { type: "text_delta", delta: "Pipeline details" },
+      },
+    });
+
+    expect(updated.conversations[0].title).toBe(
+      "Microsoft pipeline review"
+    );
+  });
 });

@@ -202,6 +202,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
     });
   }, []);
 
+  const renameConversation = useCallback(
+    (conversationId: string, title: string) => {
+      dispatch({
+        type: "conversation_renamed",
+        payload: { conversationId, title },
+      });
+    },
+    []
+  );
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
@@ -220,6 +230,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       cancelResponse,
       startNewConversation,
       loadConversation,
+      renameConversation,
     }),
     [
       cancelResponse,
@@ -227,6 +238,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
       sendMessage,
       startNewConversation,
       loadConversation,
+      renameConversation,
     ]
   );
 

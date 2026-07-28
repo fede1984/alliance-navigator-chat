@@ -1,7 +1,9 @@
 import {
   useEffect,
   useRef,
+  useState,
   useTransition,
+  type FormEvent,
 } from "react";
 import { AssistantMessage } from "./components/AssistantMessage";
 import { ChatComposer } from "./components/ChatComposer";
@@ -51,7 +53,21 @@ function ConversationHeader() {
 
 function ConversationHistory() {
   const { conversationId, conversations } = useChatState();
-  const { loadConversation } = useChatActions();
+  const { loadConversation, renameConversation } = useChatActions();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftTitle, setDraftTitle] = useState("");
+
+  function startRenaming(id: string, title: string) {
+    setEditingId(id);
+    setDraftTitle(title);
+  }
+
+  function handleRename(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingId || !draftTitle.trim()) return;
+    renameConversation(editingId, draftTitle);
+    setEditingId(null);
+  }
 
   return (
     <aside className="history-panel" aria-label="Chat history">
@@ -60,25 +76,63 @@ function ConversationHistory() {
         <p className="history-empty">Your conversations will appear here.</p>
       ) : (
         <nav>
-          {conversations.map((conversation) => (
-            <button
-              key={conversation.id}
-              type="button"
-              className="history-item"
-              aria-current={
-                conversation.id === conversationId ? "page" : undefined
-              }
-              onClick={() => loadConversation(conversation.id)}
-            >
-              <span>{conversation.title}</span>
-              <time dateTime={conversation.updatedAt}>
-                {new Intl.DateTimeFormat(undefined, {
-                  month: "short",
-                  day: "numeric",
-                }).format(new Date(conversation.updatedAt))}
-              </time>
-            </button>
-          ))}
+          {conversations.map((conversation) =>
+            editingId === conversation.id ? (
+              <form
+                className="history-rename-form"
+                key={conversation.id}
+                onSubmit={handleRename}
+              >
+                <label className="sr-only" htmlFor={`title-${conversation.id}`}>
+                  Conversation name
+                </label>
+                <input
+                  id={`title-${conversation.id}`}
+                  maxLength={60}
+                  value={draftTitle}
+                  onChange={(event) => setDraftTitle(event.target.value)}
+                  autoFocus
+                />
+                <div>
+                  <button type="submit" disabled={!draftTitle.trim()}>
+                    Save
+                  </button>
+                  <button type="button" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="history-entry" key={conversation.id}>
+                <button
+                  type="button"
+                  className="history-item"
+                  aria-current={
+                    conversation.id === conversationId ? "page" : undefined
+                  }
+                  onClick={() => loadConversation(conversation.id)}
+                >
+                  <span>{conversation.title}</span>
+                  <time dateTime={conversation.updatedAt}>
+                    {new Intl.DateTimeFormat(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    }).format(new Date(conversation.updatedAt))}
+                  </time>
+                </button>
+                <button
+                  className="history-rename-button"
+                  type="button"
+                  aria-label={`Rename ${conversation.title}`}
+                  onClick={() =>
+                    startRenaming(conversation.id, conversation.title)
+                  }
+                >
+                  Rename
+                </button>
+              </div>
+            )
+          )}
         </nav>
       )}
     </aside>

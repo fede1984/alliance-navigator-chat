@@ -21,15 +21,19 @@ function saveCurrentConversation(state: ChatState): ChatState {
   const firstUserMessage = state.messages.find(
     (message) => message.role === "user"
   );
+  const existingIndex = state.conversations.findIndex(
+    ({ id }) => id === state.conversationId
+  );
+  const existingConversation = state.conversations[existingIndex];
   const conversation = {
     id: state.conversationId,
-    title: firstUserMessage?.content.trim().slice(0, 48) || "Untitled chat",
+    title:
+      existingConversation?.title ||
+      firstUserMessage?.content.trim().slice(0, 48) ||
+      "Untitled chat",
     messages: state.messages,
     updatedAt: new Date().toISOString(),
   };
-  const existingIndex = state.conversations.findIndex(
-    ({ id }) => id === conversation.id
-  );
   const conversations =
     existingIndex === -1
       ? [conversation, ...state.conversations]
@@ -199,6 +203,20 @@ export function chatReducer(
         messages: conversation.messages,
         phase: "idle",
         error: null,
+      };
+    }
+
+    case "conversation_renamed": {
+      const title = action.payload.title.trim().slice(0, 60);
+      if (!title) return state;
+
+      return {
+        ...state,
+        conversations: state.conversations.map((conversation) =>
+          conversation.id === action.payload.conversationId
+            ? { ...conversation, title }
+            : conversation
+        ),
       };
     }
 

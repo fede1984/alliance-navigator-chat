@@ -84,6 +84,10 @@ adjusted with `RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX_REQUESTS`. Set
 `TRUST_PROXY=true` only when the application runs behind a trusted reverse proxy
 that sanitizes `X-Forwarded-For`.
 
+For presentations, `STREAM_DELAY_MS` can add a small server-side delay between
+streamed deltas so cancellation remains easy to demonstrate. It defaults to `0`
+locally; the Render demo uses `120` milliseconds.
+
 ## Production
 
 ```bash
@@ -163,6 +167,7 @@ security headers.
 | Streaming and cancellation | Implemented with a real backend |
 | Follow-up context | Implemented in memory |
 | Conversation history | Implemented in `localStorage` |
+| Conversation renaming | Implemented in the history panel |
 | Groq/Gemini fallback | Implemented |
 | Citations and deep links | UI and types ready; backend events pending |
 | Structured result cards | UI and types ready; backend events pending |

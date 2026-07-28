@@ -127,4 +127,8 @@ export type ChatAction =
   | {
       type: "conversation_loaded";
       payload: { conversationId: string };
+    }
+  | {
+      type: "conversation_renamed";
+      payload: { conversationId: string; title: string };
     };

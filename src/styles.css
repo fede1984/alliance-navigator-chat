@@ -87,6 +87,12 @@ button:disabled {
   font-size: 0.9rem;
 }
 
+.history-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
 .history-item {
   display: grid;
   gap: 4px;
@@ -98,6 +104,52 @@ button:disabled {
   background: transparent;
   color: #263149;
   text-align: left;
+}
+
+.history-rename-button {
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  color: #53617d;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.history-rename-button:hover {
+  color: #1d4ed8;
+}
+
+.history-rename-form {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #eef2f8;
+}
+
+.history-rename-form input {
+  min-width: 0;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid #9da9bf;
+  border-radius: 7px;
+  background: white;
+  color: #263149;
+}
+
+.history-rename-form div {
+  display: flex;
+  gap: 6px;
+}
+
+.history-rename-form button {
+  padding: 5px 8px;
+  border: 1px solid #9da9bf;
+  border-radius: 6px;
+  background: white;
+  color: #263149;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .history-item:hover,
@@ -454,6 +506,14 @@ button:disabled {
 
   .history-item {
     width: 180px;
+  }
+
+  .history-entry {
+    flex: 0 0 auto;
+  }
+
+  .history-rename-form {
+    width: 220px;
   }
 
   .app-header {

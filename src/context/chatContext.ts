@@ -7,6 +7,7 @@ export type ChatActions = {
   cancelResponse: () => void;
   startNewConversation: () => void;
   loadConversation: (conversationId: string) => void;
+  renameConversation: (conversationId: string, title: string) => void;
 };
 
 export const ChatStateContext = createContext<ChatState | null>(null);

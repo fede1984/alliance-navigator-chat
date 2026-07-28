@@ -13,6 +13,10 @@ const rootDirectory = fileURLToPath(new URL(".", import.meta.url));
 const conversations = new Map();
 const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000);
 const rateLimitMaxRequests = Number(process.env.RATE_LIMIT_MAX_REQUESTS || 10);
+const streamDelayMs = Math.min(
+  1_000,
+  Math.max(0, Number(process.env.STREAM_DELAY_MS || 0))
+);
 const rateLimitBuckets = new Map();
 
 const systemPrompt =
@@ -110,6 +114,23 @@ function rememberConversation(conversationId, messages) {
 
 function writeEvent(response, event) {
   response.write(`${JSON.stringify(event)}\n`);
+}
+
+function waitForStreamPacing(signal) {
+  if (!streamDelayMs) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const handleAbort = () => {
+      clearTimeout(timeout);
+      reject(new DOMException("The request was aborted.", "AbortError"));
+    };
+    const timeout = setTimeout(() => {
+      signal.removeEventListener("abort", handleAbort);
+      resolve();
+    }, streamDelayMs);
+
+    signal.addEventListener("abort", handleAbort, { once: true });
+  });
 }
 
 async function requestGroq(messages, signal) {
@@ -315,6 +336,7 @@ async function handleChat(request, response) {
         if (typeof delta === "string" && delta) {
           assistantContent += delta;
           writeEvent(response, { type: "text_delta", delta });
+          await waitForStreamPacing(upstreamController.signal);
         }
       }
 
