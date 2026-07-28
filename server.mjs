@@ -5,6 +5,7 @@ import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const port = Number(process.env.PORT || 3001);
+const host = process.env.HOST || "0.0.0.0";
 const groqModel = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
 const groqApiUrl = "https://api.groq.com/openai/v1/chat/completions";
@@ -380,6 +381,6 @@ const server = createServer(async (request, response) => {
   sendJson(response, 404, { error: "Not found" });
 });
 
-server.listen(port, () => {
-  console.log(`Alliance Navigator server listening on http://localhost:${port}`);
+server.listen(port, host, () => {
+  console.log(`Alliance Navigator server listening on http://${host}:${port}`);
 });
